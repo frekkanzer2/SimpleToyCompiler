@@ -1,0 +1,47 @@
+proc main ( ) void:
+
+	/* Declarations*/
+	int choise;
+	int var1, var2;
+	float result_add, result_sub,
+		result_mult, result_div;
+
+	/* Statements */
+	/* Stat OR Stat StatList*/
+
+	/* Stat */
+	while
+		write("Press 0 to exit or 1 to continue: ");
+		readln(choise);
+		-> choise <> 0
+	do
+		write("First value: ");
+		readln(var1);
+		write("Second value: ");
+		readln(var2);
+
+		write("Select Operation [2 -> + | 3 -> - | 4 -> * | 5 -> /]: ");
+		readln(choise);
+
+		result_add, result_sub, result_mult, result_div := operation(var1, var2, 5.5);
+
+		if choise = 2 then
+			/*statement of choise = 2*/
+			write("Result add: ", result_add, "\n");
+		elif choise = 3 then
+			write("Result sub: ", result_sub, "\n");
+		elif choise = 4 then
+ 			write("Result mult: ", result_mult, "\n");
+		elif choise = 5 then
+			write("Result div: ", result_div, "\n");
+		else
+			write("Uncorrect operation\n");
+		fi;
+
+	od;
+    ->
+corp;
+
+proc operation (int a, b; float c) int, int, int, int:
+	-> a+b, a-b, a*b, a/b
+corp;

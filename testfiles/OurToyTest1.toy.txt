@@ -1,0 +1,66 @@
+
+int var := 1;
+
+proc add (float a, b) float:
+	-> a + b
+corp;
+
+proc sub (float a, b) float:
+	-> a - b
+corp;
+
+proc mult (float a, b) float:
+	-> a * b
+corp;
+
+proc division (float a, b) float:
+	-> a / b
+corp;
+
+proc main ( ) void:
+
+	/* Declarations */
+	int choise;
+	float var1 := 5, var2, result;
+
+	/* Statements
+	   Stat OR Stat StatList */
+
+	/* Stat */
+	while
+		write("Press 0 or 1 to exit\n");
+		write("Press 2 to add\n");
+		write("Press 3 to sub\n");
+		write("Press 4 to mult\n");
+		write("Press 5 to div\n");
+		readln(choise);
+		->	choise <> 0 && choise <> 1
+	do
+		if choise > 5 || choise < 0 then
+            write("Incorrect value. Please retry.");
+        else
+            write("First value: ");
+            readln(var1);
+            write("Second value: ");
+            readln(var2);
+            if choise = 2 then
+                /*statement of choise = 2*/
+                result := add(var1, var2);
+            elif choise = 3 then
+                /*statement of choise = 3*/
+                result := sub(var1, var2);
+            elif choise = 4 then
+                /*statement of choise = 4*/
+                result := mult(var1, var2);
+            elif choise = 5 then
+                /*statement of choise = 5*/
+                result := division(var1, var2);
+            fi;
+            write("Result: ", result, "\n");
+        fi;
+	od;
+
+	->
+
+corp;
+

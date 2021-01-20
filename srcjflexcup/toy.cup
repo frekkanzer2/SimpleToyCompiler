@@ -1,0 +1,271 @@
+/* Simple +/-/* expression language; parser evaluates constant expressions on the fly*/
+
+// WINDOWS
+// C:/JFLEX/bin/jflex -d src srcjflexcup/toy.flex
+// java -jar C:/CUP/java-cup-11b.jar -destdir src srcjflexcup/toy.cup
+// java -jar C:/CUP/java-cup-11b.jar -dump -destdir src srcjflexcup/toy.cup 2>dump
+
+// LINUX
+// ./JFLEX/jflex-1.8.2/bin/jflex -d src srcjflexcup/toy.flex
+// java -jar ./CUP/java-cup-bin-11b-20160615/java-cup-11b.jar -destdir src srcjflexcup/toy.cup
+
+import java_cup.runtime.*;
+
+import java.util.ArrayList;
+
+import Support.Leafs.*;
+import Support.Nodes.*;
+
+// TERMINALS
+terminal SEMI, COMMA, INT, STRING, FLOAT, BOOL, LPAR,
+    RPAR, COLON, PROC, CORP, VOID, IF, THEN, ELIF, FI, ELSE,
+    WHILE, DO, OD, READ, WRITE, ASSIGN, PLUS, MINUS, TIMES,
+    DIV, EQ, NE, LT, LE, GT, GE, AND, OR, NOT, NULL, ARROW_RETURN;
+terminal Boolean TRUE, FALSE;
+terminal Integer INT_CONST;
+terminal Float FLOAT_CONST;
+terminal String STRING_CONST, ID;
+
+
+// HIDDEN TERMINALS
+terminal _uminus;
+
+// NONTERMINALS
+nonterminal Program, VarDeclList, ProcList, VarDecl, Type,
+    IdListInit, Proc, ResultTypeList, ReturnExprs, ExprList, ParamDeclList,
+    ParDecl, IdList, ResultType, StatList, Stat, IfStat, ElifList,
+    Elif, Else, WhileStat, ReadlnStat, WriteStat, AssignStat,
+    CallProc, Expr;
+
+// PRECEDENCES
+precedence left PLUS, MINUS;
+precedence left TIMES, DIV;
+precedence left AND;
+precedence left OR;
+precedence left NOT;
+precedence left GT, GE, LT, LE, EQ, NE;
+precedence left _uminus;
+
+// ACTIONS
+
+Program ::= VarDeclList:vlist ProcList:plist    {:
+                                                    RESULT = new ProgramNode("ProgramOp", (ArrayList<VarDeclNode>) vlist, (ArrayList<ProcNode>) plist);
+                                                :}
+;
+
+ProcList ::= Proc:p                             {:
+                                                    ArrayList<ProcNode> tmp_plist = new ArrayList<ProcNode>();
+                                                    tmp_plist.add(0, (ProcNode)p);
+                                                    RESULT = tmp_plist;
+                                                :}
+    |Proc:p ProcList:plist                      {:
+                                                    ((ArrayList)plist).add(0, (ProcNode)p);
+                                                    RESULT = plist;
+                                                :}
+;
+
+VarDeclList::= VarDecl:vd VarDeclList:vdlist
+                                                    {:
+                                                        ((ArrayList)vdlist).add(0, (VarDeclNode)vd);
+                                                        RESULT = vdlist;
+                                                    :}
+    |                                           {:
+                                                    RESULT = new ArrayList<VarDeclNode>();
+                                                 :}
+;
+
+VarDecl ::= Type:t IdListInit:ilist SEMI        {: RESULT = new VarDeclNode("VarDeclOp", (TypeNode)t, (ArrayList<IdInitNode>)ilist); :}
+;
+
+Type::= INT                                     {: RESULT = new TypeNode("INT"); :}
+    |BOOL                                       {: RESULT = new TypeNode("BOOL"); :}
+    |FLOAT                                      {: RESULT = new TypeNode("FLOAT"); :}
+    |STRING                                     {: RESULT = new TypeNode("STRING"); :}
+;
+
+IdListInit::= ID:id                            {:
+                                                    ArrayList<IdInitNode> tmp_iniList = new ArrayList<IdInitNode>();
+                                                    tmp_iniList.add(new IdInitNode(new LeafID(id)));
+                                                    RESULT = tmp_iniList;
+                                                :}
+    |IdListInit:idlist COMMA ID:id
+                                                {:
+                                                    ((ArrayList)idlist).add(new IdInitNode(new LeafID(id)));
+                                                    RESULT = idlist;
+                                                :}
+    |ID:id ASSIGN Expr:e
+                                                {:
+                                                    ArrayList<IdInitNode> tmp_iniList = new ArrayList<IdInitNode>();
+                                                    tmp_iniList.add(new IdInitNode(new LeafID(id), (ExprNode)e));
+                                                    RESULT = tmp_iniList;
+                                                :}
+    |IdListInit:idlist COMMA ID:id ASSIGN Expr:e
+                                                {:
+                                                    ((ArrayList)idlist).add(new IdInitNode(new LeafID(id), (ExprNode)e));
+                                                    RESULT = idlist;
+                                                :}
+;
+
+Proc ::= PROC ID:id LPAR ParamDeclList:pdlist RPAR ResultTypeList:rtlist COLON VarDeclList:vdlist StatList:slist ARROW_RETURN ReturnExprs:rlist CORP SEMI
+                {:
+                        LeafID id_obj = new LeafID(id);
+                        ProcBodyNode body = new ProcBodyNode((ArrayList<VarDeclNode>)vdlist, (StatListNode) slist, (ArrayList<ExprNode>) rlist);
+                        RESULT = new ProcNode("ProcOp", id_obj, (ArrayList<ParDeclNode>)pdlist, (ArrayList<ResultTypeNode>)rtlist, body);
+                   :}
+   | PROC ID:id LPAR RPAR ResultTypeList:rtlist COLON VarDeclList:vdlist StatList:slist ARROW_RETURN ReturnExprs:rlist CORP SEMI
+                {:
+                        LeafID id_obj = new LeafID(id);
+                        ProcBodyNode body = new ProcBodyNode((ArrayList<VarDeclNode>)vdlist, (StatListNode) slist, (ArrayList<ExprNode>) rlist);
+                        RESULT = new ProcNode("ProcOp", id_obj, (ArrayList<ResultTypeNode>)rtlist, body);
+                :}
+   | PROC ID:id LPAR ParamDeclList:pdlist RPAR ResultTypeList:rtlist COLON VarDeclList:vdlist ARROW_RETURN ReturnExprs:rlist CORP SEMI
+                {:
+                        LeafID id_obj = new LeafID(id);
+                        ProcBodyNode body = new ProcBodyNode((ArrayList<VarDeclNode>)vdlist, (ArrayList<ExprNode>) rlist);
+                        RESULT = new ProcNode("ProcOp", id_obj, (ArrayList<ParDeclNode>)pdlist, (ArrayList<ResultTypeNode>)rtlist, body);
+                   :}
+   | PROC ID:id LPAR RPAR ResultTypeList:rtlist COLON VarDeclList:vdlist ARROW_RETURN ReturnExprs:rlist CORP SEMI
+                {:
+                        LeafID id_obj = new LeafID(id);
+                        ProcBodyNode body = new ProcBodyNode((ArrayList<VarDeclNode>)vdlist, (ArrayList<ExprNode>) rlist);
+                        RESULT = new ProcNode("ProcOp", id_obj, (ArrayList<ResultTypeNode>)rtlist, body);
+                :}
+;
+
+ResultTypeList::= ResultType:rs             {:
+                                                ArrayList<ResultTypeNode> tmp_rtlist = new ArrayList<ResultTypeNode>();
+                                                tmp_rtlist.add(0, (ResultTypeNode)rs);
+                                                RESULT = tmp_rtlist;
+                                           :}
+    |ResultType:rs COMMA ResultTypeList:rslist        {:
+                                                            ((ArrayList)rslist).add(0, (ResultTypeNode)rs);
+                                                            RESULT = rslist;
+                                                     :}
+;
+
+ReturnExprs ::= ExprList:elist      {: RESULT = elist; :}
+    |                               {: RESULT = null; :}
+;
+
+ExprList::= Expr:e                      {:
+                                            ArrayList<ExprNode> tmp_elist = new ArrayList<ExprNode>();
+                                            tmp_elist.add(0, (ExprNode)e);
+                                            RESULT = tmp_elist;
+                                       :}
+    |Expr:e COMMA ExprList:elist        {:
+                                            ((ArrayList)elist).add(0, (ExprNode)e);
+                                            RESULT = elist;
+                                       :}
+;
+
+ParamDeclList::= ParDecl:pd           {:
+                                            ArrayList<ParDeclNode> tmp_pdlist = new ArrayList<ParDeclNode>();
+                                            tmp_pdlist.add((ParDeclNode)pd);
+                                            RESULT = tmp_pdlist;
+                                      :}
+    |ParamDeclList:pdlist SEMI ParDecl:pd         {:
+                                                        ((ArrayList)pdlist).add((ParDeclNode)pd);
+                                                        RESULT = pdlist;
+                                                 :}
+;
+
+ParDecl::= Type:t IdList:ilist      {: RESULT = new ParDeclNode("ParDeclOp", (TypeNode)t, (ArrayList<LeafID>)ilist); :}
+;
+
+IdList ::= ID:i                   {:
+                                        ArrayList<LeafID> tmp_ilist = new ArrayList<LeafID>();
+                                        tmp_ilist.add(new LeafID(i));
+                                        RESULT = tmp_ilist;
+                                    :}
+    |IdList:ilist COMMA ID:i      {:
+                                        ((ArrayList)ilist).add(new LeafID(i));
+                                        RESULT = ilist;
+                                    :}
+;
+
+ResultType::= Type:t              {: RESULT = new ResultTypeNode("ResultTypeOp", (TypeNode)t); :}
+    |VOID                         {: RESULT = new ResultTypeNode("ResultTypeOp", true); :}
+;
+
+//
+//          StatList is a StatListNode object
+//
+StatList ::= Stat:s SEMI                {: ArrayList<StatNode> tmp_list = new ArrayList<StatNode>();
+                                            if ((StatNode)s!= null) tmp_list.add((StatNode)s);
+                                            RESULT = new StatListNode("StatList", tmp_list);
+                                        :}
+    | Stat:s SEMI StatList:slist     {: if ((StatNode)s != null) ((StatListNode)slist).add((StatNode)s);
+                                        RESULT = (StatListNode)slist;
+                                        :}
+;
+
+Stat ::= IfStat:ifStateOp        {:RESULT = (StatNode)ifStateOp;:}
+    | WhileStat:whileOp          {:RESULT = (StatNode)whileOp;  :}
+    | ReadlnStat:readOP          {:RESULT = (StatNode)readOP; :}
+    | WriteStat:writeOP          {:RESULT = (StatNode)writeOP; :}
+    | AssignStat:assignOp        {:RESULT = (StatNode)assignOp; :}
+    | CallProc:callProcOp        {:RESULT = (StatNode)callProcOp; :}
+;
+
+IfStat::= IF Expr:condition THEN StatList:ifBody ElifList:elifList Else:elseBody FI {:
+                                    if(elseBody != null) RESULT = new IfNode("IfOp", (ExprNode)condition, (StatListNode)ifBody, (ArrayList<ElifNode>)elifList, (StatListNode)elseBody);
+                                    else RESULT = new IfNode("IfOp", (ExprNode)condition, (StatListNode)ifBody, (ArrayList<ElifNode>)elifList);
+                            :}
+;
+
+ElifList::= Elif:elifNode ElifList:list {:
+                                ((ArrayList<ElifNode>)list).add(0, (ElifNode)elifNode);
+                                RESULT = list;
+                            :}
+    |                   {: ArrayList<ElifNode> eList =  new ArrayList<ElifNode>();
+                        RESULT = eList;:}
+;
+
+Elif ::= ELIF Expr:condition THEN StatList:body {:RESULT = new ElifNode((ExprNode)condition, (StatListNode) body);:};
+
+Else ::= ELSE StatList:sList    {:RESULT = (StatListNode) sList; :}
+    |                           {:RESULT = null; :}
+;
+
+WhileStat ::= WHILE StatList:alist ARROW_RETURN Expr:e DO StatList:plist OD    {: RESULT = new WhileStatNode("WhileOp", (StatListNode)alist, (ExprNode)e, (StatListNode)plist); :}
+    | WHILE Expr:e DO StatList:plist OD                           {: RESULT = new WhileStatNode("WhileOp", (ExprNode)e, (StatListNode)plist); :}
+;
+
+ReadlnStat ::= READ LPAR IdList:ilist RPAR        {: RESULT = new ReadStatNode("ReadOp", (ArrayList<LeafID>)ilist); :}
+;
+
+WriteStat ::= WRITE LPAR ExprList:elist RPAR        {: RESULT = new WriteStatNode("WriteOp", (ArrayList<ExprNode>)elist); :}
+;
+
+AssignStat ::= IdList:ilist ASSIGN ExprList:elist   {: RESULT = new AssignStatNode("AssignOp",
+                                                                    (ArrayList<LeafID>)ilist, (ArrayList<ExprNode>)elist); :}
+;
+
+CallProc ::= ID:i LPAR RPAR             {: RESULT = new CallProcNode("CallProcBody", new LeafID(i)); :}
+    | ID:i LPAR ExprList:elist RPAR     {: RESULT = new CallProcNode("CallProcBody", new LeafID(i), (ArrayList<ExprNode>) elist); :}
+;
+
+Expr ::= NULL               {: RESULT = new ExprNode("NULL", new LeafNull()); :}
+    | INT_CONST:val         {: RESULT = new ExprNode("INT_CONST", new LeafIntConst(val)); :}
+    | FLOAT_CONST:val       {: RESULT = new ExprNode("FLOAT_CONST", new LeafFloatConst(val)); :}
+    | STRING_CONST:val      {: RESULT = new ExprNode("STRING_CONST", new LeafStringConst(val)); :}
+    | TRUE:val              {: RESULT = new ExprNode("TRUE", new LeafBool(true)); :}
+    | FALSE:val             {: RESULT = new ExprNode("FALSE", new LeafBool(false)); :}
+    | ID:val                {: RESULT = new ExprNode("ID", new LeafID(val)); :}
+    | CallProc:val          {: RESULT = new ExprNode("CallProcOp", (CallProcNode) val); :}
+    | Expr:e1 PLUS Expr:e2      {: RESULT = new ExprNode("AddOp", (ExprNode)e1, (ExprNode)e2); :}
+    | Expr:e1 MINUS Expr:e2     {: RESULT = new ExprNode("DiffOp", (ExprNode)e1, (ExprNode)e2); :}
+    | Expr:e1 TIMES Expr:e2     {: RESULT = new ExprNode("MulOp", (ExprNode)e1, (ExprNode)e2); :}
+    | Expr:e1 DIV Expr:e2       {: RESULT = new ExprNode("DivOp", (ExprNode)e1, (ExprNode)e2); :}
+    | Expr:e1 AND Expr:e2       {: RESULT = new ExprNode("AndOp", (ExprNode)e1, (ExprNode)e2); :}
+    | Expr:e1 OR Expr:e2        {: RESULT = new ExprNode("OrOp", (ExprNode)e1, (ExprNode)e2); :}
+    | Expr:e1 GT Expr:e2        {: RESULT = new ExprNode("GTOp", (ExprNode)e1, (ExprNode)e2); :}
+    | Expr:e1 GE Expr:e2        {: RESULT = new ExprNode("GEOp", (ExprNode)e1, (ExprNode)e2); :}
+    | Expr:e1 LT Expr:e2        {: RESULT = new ExprNode("LTOp", (ExprNode)e1, (ExprNode)e2); :}
+    | Expr:e1 LE Expr:e2        {: RESULT = new ExprNode("LEOp", (ExprNode)e1, (ExprNode)e2); :}
+    | Expr:e1 EQ Expr:e2        {: RESULT = new ExprNode("EQOp", (ExprNode)e1, (ExprNode)e2); :}
+    | Expr:e1 NE Expr:e2        {: RESULT = new ExprNode("NEOp", (ExprNode)e1, (ExprNode)e2); :}
+    | MINUS Expr:e1        {: RESULT = new ExprNode("UminusOp", (ExprNode)e1); :} %prec _uminus
+    | NOT Expr:e1          {: RESULT = new ExprNode("NotOp", (ExprNode)e1); :}
+;
+

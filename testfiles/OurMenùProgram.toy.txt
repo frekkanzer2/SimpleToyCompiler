@@ -1,0 +1,130 @@
+proc main ( ) void:
+
+	/* Declarations*/
+	int choise;
+	float var1, var2, result_add, result_sub, result_mult, result_div, result_pow, result_fibonacci;
+
+	/* Statements */
+	/* Stat OR Stat StatList*/
+
+	/* Stat */
+	while
+		write("Press 0 to exit or 1 to continue\n");
+		readln(choise);
+		-> choise <> 0
+	do
+
+		write("Select Operation [2 -> + | 3 -> - | 4 -> * | 5 -> /| 6 -> ^ | 7 -> Fibonacci Calculation]: ");
+		readln(choise);
+
+		if choise = 2 then
+		    write("Selection Add\n");
+
+		    write("First value: ");
+            readln(var1);
+            write("Second value: ");
+            readln(var2);
+
+            result_add, result_sub, result_mult, result_div := operation(var1, var2);
+
+			write("Result add: ", result_add, "\n");
+		elif choise = 3 then
+		    write("Selection Diff\n");
+
+            write("First value: ");
+            readln(var1);
+            write("Second value: ");
+            readln(var2);
+
+            result_add, result_sub, result_mult, result_div := operation(var1, var2);
+
+			write("Result sub: ", result_sub, "\n");
+		elif choise = 4 then
+		    write("Selection Mult\n");
+
+            write("First value: ");
+            readln(var1);
+            write("Second value: ");
+            readln(var2);
+
+            result_add, result_sub, result_mult, result_div := operation(var1, var2);
+
+ 			write("Result mult: ", result_mult, "\n");
+		elif choise = 5 then
+		    write("Selection Div\n");
+
+            write("First value: ");
+            readln(var1);
+            write("Second value: ");
+            readln(var2);
+
+            result_add, result_sub, result_mult, result_div := operation(var1, var2);
+
+			write("Result div: ", result_div, "\n");
+
+        elif choise = 6 then
+            write("Selection Exp\n");
+
+            write("Base: ");
+            readln(var1);
+            write("Exponent: ");
+            readln(var2);
+
+            result_pow := pow(var1, var2);
+
+            write("Result pow: ", result_pow, "\n");
+
+        elif choise = 7 then
+            write("Selection Fibonacci\n");
+
+            write("Number: ");
+            readln(var1);
+
+
+            result_fibonacci := fibonacci(var1);
+
+            write("Result fibonacci: ", result_fibonacci, "\n");
+		else
+			write("Uncorrect operation", "\n");
+		fi;
+
+	od;
+    ->
+corp;
+
+proc operation (float a, b) float, float, float, float:
+	-> a+b, a-b, a*b, a/b
+corp;
+
+proc pow (float base, exp) float:
+    float startBase;
+    startBase := base;
+
+    if exp > 0 then
+        while
+           exp > 1
+        do
+            base := base * startBase;
+            exp := exp - 1;
+        od;
+    else
+        base := 1;
+    fi;
+	-> base
+corp;
+
+proc fibonacci (float i) float:
+    float res;
+
+     if i < 0 then
+        res := -1;
+     elif i = 0 then
+        res := 0;
+     elif i = 1 then
+        res := 1;
+     else
+        res := fibonacci(i - 1) + fibonacci(i - 2);
+     fi;
+     -> res
+corp;
+

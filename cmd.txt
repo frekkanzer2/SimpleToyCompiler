@@ -1,0 +1,9 @@
+// WINDOWS
+// C:/JFLEX/bin/jflex -d src srcjflexcup/toy.flex
+// java -jar C:/CUP/java-cup-11b.jar -destdir src srcjflexcup/toy.cup
+// java -jar C:/CUP/java-cup-11b.jar -dump -destdir src srcjflexcup/toy.cup 2>dump
+
+// LINUX
+// ./JFLEX/jflex-1.8.2/bin/jflex -d src srcjflexcup/toy.flex
+// java -jar ./CUP/java-cup-bin-11b-20160615/java-cup-11b.jar -destdir src srcjflexcup/toy.cup
+// java -jar ./CUP/java-cup-bin-11b-20160615/java-cup-11b.jar -dump -destdir src srcjflexcup/toy.cup 2>dump

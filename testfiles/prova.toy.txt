@@ -1,0 +1,34 @@
+
+proc getValues(int a; int b) int, int, int:
+    -> 10, 20, 30
+corp;
+
+proc getAnotherValue(int a; int b) int, int:
+    -> 10, 20
+corp;
+
+proc main() void:
+
+    int a := 0, b, c, d, e;
+    string mario := "Ciao mario";
+
+    bool f;
+    write("Inserire un booleano: ");
+    readln(f);
+
+
+    if f then
+        write("TRUE\n");
+        e, b, c, d, a := 1, getValues(a, b), 1;
+        a, b, c, d, e := getValues(e, d), getAnotherValue(a, b);
+    elif !f then
+        write("FALSE\n");
+        b, c, d := getValues(getAnotherValue(a, b));
+    else a:=4;
+    fi;
+
+    write(getValues(a, b), "pippo ", getValues(getAnotherValue(getAnotherValue(a, b))), 1 + 4,  " " , mario, " ", f);
+
+    ->
+
+corp;
