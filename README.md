@@ -15,3 +15,5 @@ Il programma, però, permette di chiamare tali script in automatico, quindi eseg
 > [Visualizza la specifica lessicale e grammaticale](https://github.com/frekkanzer2/SimpleToyCompiler/blob/main/documentation/Specifica%20Lessicale%20e%20Sintattica.pdf)
 
 > [Visualizza la documentazione semantica e generazione del codice](https://github.com/frekkanzer2/SimpleToyCompiler/blob/main/documentation/Documentazione%20Progetto.pdf)
+
+Creato da Francesco Abate e Carmine Ferrara
